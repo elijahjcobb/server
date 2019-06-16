@@ -33,7 +33,6 @@ import { ECMime } from "@elijahjcobb/prototypes";
  * @param mime The mime of the file to be returned.
  */
 export type ECSResponseConstructor = {
-	data: any;
 	mime?: ECMime;
 	name?: string;
 	status?: number;
@@ -58,13 +57,14 @@ export class ECSResponse extends ECPrototype {
 
 	/**
 	 * Create a new response instance. Provide data of any type and an optional mime and name.
+	 * @param data The data to respond with.
 	 * @param object An object conforming to ECSResponseConstructor.
 	 */
-	public constructor(object: ECSResponseConstructor) {
+	public constructor(data: any, object: ECSResponseConstructor = {}) {
 
 		super();
 
-		this.data = object.data;
+		this.data = data;
 		this.isRaw = object.mime !== undefined;
 		this.mime = object.mime || ECMime.initWithComponents("application", "json");
 		this.name = object.name || ECGenerator.randomId();

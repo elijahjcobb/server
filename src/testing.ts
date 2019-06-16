@@ -22,20 +22,34 @@
  *
  */
 
-import { ECSRequest, ECSRequestType, ECSResponse, ECSRoute, ECSRouter, ECSServer } from "./index";
-import { ECErrorOriginType, ECErrorStack, ECErrorType } from "@elijahjcobb/error";
+import {
+	ECSRequest,
+	ECSRequestType,
+	ECSResponse,
+	ECSRoute,
+	ECSRouter,
+	ECSServer,
+	ECSTypeValidator,
+	ECSValidator,
+} from "./index";
+
+import * as Typit from "typit";
 
 const server: ECSServer = new ECSServer();
 
 const router: ECSRouter = new ECSRouter();
-const route: ECSRoute = new ECSRoute(ECSRequestType.GET, "/", async (req: ECSRequest): Promise<ECSResponse> => {
 
-	//throw ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FileDoesNotExist, new Error("wef"));
-	return new ECSResponse({ data: {
-		foo: 1
-	}});
+const route: ECSRoute = new ECSRoute(ECSRequestType.POST, "/foo/:id", async (req: ECSRequest): Promise<ECSResponse> => {
 
-});
+	return new ECSResponse({
+		id: req.getParameters().get("id"),
+		name: req.getBody().get("name")
+	});
+
+}, new ECSValidator(new ECSTypeValidator(new Typit.ObjectType({
+	name: Typit.StandardType.STRING
+}))));
+
 router.add(route);
 
 server.routers.set("/", router);

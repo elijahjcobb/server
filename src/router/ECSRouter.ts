@@ -62,7 +62,7 @@ export class ECSRouter extends ECSServer {
 			timeStamp: Date.now()
 		});
 
-		const errorMessage: string = error instanceof Error ? error.message : error + "";
+		const errorMessage: string = error instanceof Error ? error.message + "\n" + error.stack : error + "";
 		const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error(errorMessage));
 		stack.print();
 

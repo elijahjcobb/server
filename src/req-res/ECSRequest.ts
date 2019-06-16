@@ -23,7 +23,7 @@
  */
 
 import Express = require("express");
-import { ECDictionary, ECMap, ECPrototype } from "@elijahjcobb/collections";
+import { ECDictionary, ECPrototype } from "@elijahjcobb/collections";
 import { ECSRequestProtocol, ECSRequestType } from "..";
 
 /**
@@ -34,8 +34,9 @@ export class ECSRequest extends ECPrototype {
 	private readonly timeStamp: number;
 	private readonly ip: string;
 	private readonly endpoint: string;
-	private readonly body: ECMap<string, any>;
-	private readonly cookies: ECMap<string, any>;
+	private readonly body: ECDictionary<string, any>;
+	private readonly cookies: ECDictionary<string, any>;
+	private readonly parameters: ECDictionary<string, any>;
 	private readonly method: ECSRequestType;
 	private readonly hostName: string;
 	private readonly url: string;
@@ -61,9 +62,8 @@ export class ECSRequest extends ECPrototype {
 		this.endpoint = req.path;
 		this.rawBody = req["body"];
 
-		this.cookies = ECMap.initWithNativeObject<string>(req["cookies"]);
-
-		if (req["cookies"] == null) this.cookies = new ECMap<string, any>();
+		if (req.cookies) this.cookies = ECDictionary.initWithNativeObject<string>(req.cookies);
+		else this.cookies = new ECDictionary<string, any>();
 
 		this.method = ECSRequest.methodTypeFromString(req.method);
 		this.hostName = req.hostname;
@@ -72,16 +72,18 @@ export class ECSRequest extends ECPrototype {
 
 		if (this.method === ECSRequestType.GET) {
 
-			this.body = ECMap.initWithNativeObject<string>(req.query);
-			if (req.query == null) this.body = new ECMap<string, any>();
+			if (req.query) this.body = ECDictionary.initWithNativeObject<string>(req.query);
+			else this.body = new ECDictionary<string, any>();
 
 		} else {
 
-			this.body = ECMap.initWithNativeObject(req["body"]);
-			if (req["body"] == null) this.body = new ECMap<string, any>();
+			if (req.body) this.body = ECDictionary.initWithNativeObject<string>(req.body);
+			else this.body = new ECDictionary<string, any>();
 
 		}
 
+		if (req.params) this.parameters = ECDictionary.initWithNativeObject<string>(req.params);
+		else this.parameters = new ECDictionary<string, any>();
 	}
 
 	/**
@@ -226,6 +228,12 @@ export class ECSRequest extends ECPrototype {
 	public getSession<T>(): T {
 
 		return this.session as T;
+
+	}
+
+	public getParameters(): ECDictionary<string, string | number> {
+
+		return this.parameters;
 
 	}
 

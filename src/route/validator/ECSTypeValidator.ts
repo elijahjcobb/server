@@ -63,27 +63,25 @@ export class ECSTypeValidator extends ECPrototype {
 	public verifyRequest(request: ECSRequest): ECSResponse | undefined {
 
 		const errors: ECArray<MalformedObjectError> = this.getErrors(request.getBody().toNativeObject());
+
 		if (errors.isEmpty()) return undefined;
 
 		return new ECSResponse({
-			data: {
-				errors: {
-					type: errors.map((error: MalformedObjectError): object => {
+			errors: {
+				type: errors.map((error: MalformedObjectError): object => {
 
-						return {
-							path: error.readablePath,
-							type: {
-								expected: error.expectedType.getTypeName(),
-								actual: error.actualType.getTypeName()
-							},
-							value: error.actualValue
-						};
+					return {
+						path: error.readablePath,
+						type: {
+							expected: error.expectedType.getTypeName(),
+							actual: error.actualType.getTypeName()
+						},
+						value: error.actualValue
+					};
 
-					})
-				}
-			},
-			status: 406
-		});
+				}).toNativeArray()
+			}
+		}, { status: 400 });
 
 	}
 }

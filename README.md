@@ -103,7 +103,7 @@ class MyRouter extends ECSRouter {
 			
 			//do stuff
 			
-			return new ECSResponse({ foo: valueForKeyFooInBody });
+			return new ECSResponse({ foo: valueForKeyFooInBody }, { status: 201 /* send status code of 201 */});
 			
 		});
 		
@@ -192,7 +192,15 @@ private async requestHandler(request: ECSRequest): Promise<ECSResponse> {
 ``` 
 
 ## Type Checking Requests
-> documentation coming very very very soon...
+All requests that need to be checked can go through an `ECSTypeValidator`. Internally, [the NPM package `typit`](https://npmjs.com) is used.
+When creating type validations follow any documentation provided by that package. You may specify a strcture and the requests body will be checked.
+
+```typescript
+new ECSValidator(new ECSTypeValidator(new Typit.ObjectType({
+	name: Typit.StandardType.STRING
+})))
+```
+
 ## Authorization Validation
 There are two main ways you can do this. You can either make or class, or just set a handler. It is up to you.
 
