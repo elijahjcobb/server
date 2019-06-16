@@ -25,13 +25,15 @@
 import { ECSRequest, ECSRequestType, ECSResponse, ECSRoute, ECSRouter, ECSServer } from "./index";
 import { ECErrorOriginType, ECErrorStack, ECErrorType } from "@elijahjcobb/error";
 
-let server: ECSServer = new ECSServer();
+const server: ECSServer = new ECSServer();
 
-let router: ECSRouter = new ECSRouter();
-let route: ECSRoute = new ECSRoute(ECSRequestType.GET, "/", async (req: ECSRequest): Promise<ECSResponse> => {
+const router: ECSRouter = new ECSRouter();
+const route: ECSRoute = new ECSRoute(ECSRequestType.GET, "/", async (req: ECSRequest): Promise<ECSResponse> => {
 
-	throw ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FileDoesNotExist, new Error("wef"));
-	return new ECSResponse({foo: 1});
+	//throw ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FileDoesNotExist, new Error("wef"));
+	return new ECSResponse({ data: {
+		foo: 1
+	}});
 
 });
 router.add(route);

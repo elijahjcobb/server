@@ -32,15 +32,16 @@ import { ECSRouter } from "./router/ECSRouter";
 import { ECSServerHTTPConfig, ECSServerHTTPSConfig } from "./interfaces/ECSTypes";
 
 /**
- * A factory class to add middlewares and an error handler to a entire server.
+ * A factory class to add middleware and an error handler to a entire server.
  */
 export class ECSServer extends ECPrototype {
 
-	private expressServer: Express.Application;
-	private httpServer: HTTPServer.Server;
-	private httpsServer: HTTPSServer.Server;
-	public httpConfig: ECSServerHTTPConfig;
-	public httpsConfig: ECSServerHTTPSConfig;
+
+	private expressServer: Express.Application | undefined;
+	private httpServer: HTTPServer.Server | undefined;
+	private httpsServer: HTTPSServer.Server | undefined;
+	public httpConfig: ECSServerHTTPConfig | undefined;
+	public httpsConfig: ECSServerHTTPSConfig | undefined;
 	public routers: ECMap<string, ECSRouter> = new ECMap<string, ECSRouter>();
 	public static middlewares: ECArrayList<ECSMiddlewareHandler> = new ECArrayList<ECSMiddlewareHandler>();
 	public static errorHandler: ECSErrorHandler;
@@ -63,8 +64,8 @@ export class ECSServer extends ECPrototype {
 
 		this.routers.forEach((mountingPoint: string, router: ECSRouter) => {
 
+			if (!this.expressServer) throw new Error("Express server is undefined.");
 			mountingPoint = mountingPoint.replace("/", "");
-
 			this.expressServer.use("/" + mountingPoint, router.getRouter());
 
 		});
@@ -108,14 +109,14 @@ export class ECSServer extends ECPrototype {
 
 	}
 
-	public startHTTP(port?: number): void {
+	public startHTTP(port: number = 3000): void {
 
 		this.initServer();
 
 		if (port) this.httpConfig = { port };
 
 		this.httpServer = HTTPServer.createServer(this.expressServer);
-		this.httpServer.listen(this.httpConfig.port, () => console.log("Start Server: HTTP"));
+		this.httpServer.listen(port, () => console.log("Start Server: HTTP"));
 
 	}
 
@@ -125,19 +126,21 @@ export class ECSServer extends ECPrototype {
 
 		if (config) this.httpsConfig = config;
 
-		this.httpsServer = HTTPSServer.createServer({ cert: this.httpsConfig.certificate, key: this.httpsConfig.key }, this.expressServer);
-		this.httpsServer.listen(this.httpsConfig.port, () => console.log("Start Server: HTTPS"));
+		this.httpsServer = HTTPSServer.createServer({ cert: config.certificate, key: config.key }, this.expressServer);
+		this.httpsServer.listen(config.port, () => console.log("Start Server: HTTPS"));
 
 	}
 
 	public stopHTTP(): void {
 
+		if (!this.httpServer) throw new Error("The HTTP server is undefined. Cannot close.");
 		this.httpServer.close(() => console.log("Stop Server: HTTP"));
 
 	}
 
 	public stopHTTPS(): void {
 
+		if (!this.httpsServer) throw new Error("The HTTPS server is undefined. Cannot close.");
 		this.httpsServer.close(() => console.log("Stop Server: HTTPS"));
 
 	}

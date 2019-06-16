@@ -23,30 +23,64 @@
  */
 
 import Express = require("express");
-import { ECMap, ECDictionary, ECPrototype } from "@elijahjcobb/collections";
-import { ECSRequestType, ECSRequestProtocol } from "..";
+import { ECDictionary, ECMap, ECPrototype } from "@elijahjcobb/collections";
+import { ECSRequestProtocol, ECSRequestType } from "..";
 
 /**
  * A class representing a request to the server. All information provided to the server is evident on the instance.
  */
 export class ECSRequest extends ECPrototype {
 
-	private timeStamp: number;
-	private ip: string;
-	private endpoint: string;
-	private body: ECMap<string, any>;
-	private cookies: ECMap<string, any>;
-	private method: ECSRequestType;
-	private hostName: string;
-	private url: string;
-	private protocol: ECSRequestProtocol;
-	private instance: Express.Request;
-	private rawBody: Buffer;
+	private readonly timeStamp: number;
+	private readonly ip: string;
+	private readonly endpoint: string;
+	private readonly body: ECMap<string, any>;
+	private readonly cookies: ECMap<string, any>;
+	private readonly method: ECSRequestType;
+	private readonly hostName: string;
+	private readonly url: string;
+	private readonly protocol: ECSRequestProtocol;
+	private readonly instance: Express.Request;
+	private readonly rawBody: Buffer;
 	private session: any;
 
-	public constructor() {
+	/**
+	 * Create a new instance from a Express Request instance.
+	 * @param {Express.Request} req A Express.Request instance.
+	 */
+	public constructor(req: Express.Request) {
 
 		super();
+
+		this.instance = req;
+		this.timeStamp = Date.now();
+
+		this.ip = req.ip === "::1" ? "1.1.1.1" : req.ip;
+		this.ip = this.ip.replace("::ffff:", "");
+
+		this.endpoint = req.path;
+		this.rawBody = req["body"];
+
+		this.cookies = ECMap.initWithNativeObject<string>(req["cookies"]);
+
+		if (req["cookies"] == null) this.cookies = new ECMap<string, any>();
+
+		this.method = ECSRequest.methodTypeFromString(req.method);
+		this.hostName = req.hostname;
+		this.url = req.originalUrl;
+		this.protocol = ECSRequest.protocolTypeFromString(req.protocol);
+
+		if (this.method === ECSRequestType.GET) {
+
+			this.body = ECMap.initWithNativeObject<string>(req.query);
+			if (req.query == null) this.body = new ECMap<string, any>();
+
+		} else {
+
+			this.body = ECMap.initWithNativeObject(req["body"]);
+			if (req["body"] == null) this.body = new ECMap<string, any>();
+
+		}
 
 	}
 
@@ -177,7 +211,7 @@ export class ECSRequest extends ECPrototype {
 	 * @param {string} header The key for the header.
 	 * @return {string} The value for the header.
 	 */
-	public getHeader(header: string): string {
+	public getHeader(header: string): string | undefined {
 
 		return this.instance.get(header);
 
@@ -211,6 +245,8 @@ export class ECSRequest extends ECPrototype {
 				return ECSRequestType.PUT;
 			case "DELETE":
 				return ECSRequestType.DELETE;
+			default:
+				return ECSRequestType.GET;
 		}
 
 	}
@@ -231,51 +267,9 @@ export class ECSRequest extends ECPrototype {
 				return ECSRequestProtocol.WS;
 			case "wss":
 				return ECSRequestProtocol.WSS;
+			default:
+				return ECSRequestProtocol.HTTP;
 		}
-	}
-
-	/**
-	 * Create a new instance from a Express Request instance.
-	 * @param {Express.Request} req A Express.Request instance.
-	 * @return {Promise<ECSRequest>} A new ECSRequest instance.
-	 */
-	public static async initWithRequest(req: Express.Request): Promise<ECSRequest> {
-
-		let request: ECSRequest = new ECSRequest();
-
-		request.instance = req;
-		request.timeStamp = Date.now();
-
-		request.ip = req.ip === "::1" ? "1.1.1.1" : req.ip;
-		request.ip = request.ip.replace("::ffff:", "");
-
-		request.endpoint = req.path;
-		request.rawBody = req["body"];
-
-		request.cookies = ECMap.initWithNativeObject<string>(req["cookies"]);
-
-		if (req["cookies"] == null) request.cookies = new ECMap<string, any>();
-
-		request.method = ECSRequest.methodTypeFromString(req.method);
-		request.hostName = req.hostname;
-		request.url = req.originalUrl;
-		request.protocol = ECSRequest.protocolTypeFromString(req.protocol);
-
-		if (request.method === ECSRequestType.GET) {
-
-			request.body = ECMap.initWithNativeObject<string>(req.query);
-			if (req.query == null) request.body = new ECMap<string, any>();
-
-		} else {
-
-			request.body = ECMap.initWithNativeObject(req["body"]);
-			if (req["body"] == null) request.body = new ECMap<string, any>();
-
-		}
-
-
-		return request;
-
 	}
 
 }

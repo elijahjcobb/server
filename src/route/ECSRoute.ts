@@ -25,22 +25,24 @@
 import { ECPrototype } from "@elijahjcobb/collections";
 import { ECByteSize, ECByteSizeUnit, ECMime } from "@elijahjcobb/prototypes";
 import { ECSRouteFileUpload } from "./ECSRouteFileUpload";
-import { ECSRouterHandler, ECSRouterPostProcessHandler, ECSRequestType } from "..";
+import { ECSRequestType, ECSRouterHandler, ECSRouterPostProcessHandler } from "..";
 import { ECSValidator } from "./validator/ECSValidator";
+import { ECPrototypesByteSizeUnit } from "@elijahjcobb/prototypes/dist/ECPrototypesByteSizeUnit";
+import { ECPrototypesMime } from "@elijahjcobb/prototypes/dist/ECPrototypesMime";
 
 /**
  * A class representing a route on the server. Used by a ECSRouter.
  */
 export class ECSRoute extends ECPrototype {
 
+	private handler: ECSRouterHandler;
 	private readonly method: ECSRequestType;
 	private readonly endpoint: string;
-	private handler: ECSRouterHandler;
 	private readonly isRawBody: boolean;
-	private readonly bodySizeLimit: ECByteSize;
-	private readonly allowedMime: ECMime;
-	private readonly validator: ECSValidator;
-	private postProcessHandler: ECSRouterPostProcessHandler;
+	private readonly bodySizeLimit: ECByteSize | undefined;
+	private readonly allowedMime: ECMime | undefined;
+	private readonly validator: ECSValidator | undefined;
+	private postProcessHandler: ECSRouterPostProcessHandler | undefined;
 
 	/**
 	 * Create a new ECSRoute instance (an endpoint).
@@ -95,7 +97,7 @@ export class ECSRoute extends ECPrototype {
 	 * Get the post process handler.
 	 * @return {ECSRouterPostProcessHandler} A ECSRouterPostProcessHandler function.
 	 */
-	public getPostProcessHandler(): ECSRouterPostProcessHandler {
+	public getPostProcessHandler(): ECSRouterPostProcessHandler | undefined {
 
 		return this.postProcessHandler;
 
@@ -128,7 +130,7 @@ export class ECSRoute extends ECPrototype {
 	public getEndpoint(): string {
 
 		let endpoint: string = this.endpoint;
-		let firstChar: string = endpoint.charAt(0);
+		const firstChar: string = endpoint.charAt(0);
 		if (firstChar === "/") endpoint = endpoint.substr(1, endpoint.length - 1);
 		endpoint = "/" + endpoint;
 
@@ -162,7 +164,7 @@ export class ECSRoute extends ECPrototype {
 	 */
 	public getBodySizeLimit(): ECByteSize {
 
-		return this.bodySizeLimit;
+		return this.bodySizeLimit || new ECByteSize(100, ECPrototypesByteSizeUnit.Megabyte);
 
 	}
 
@@ -172,7 +174,7 @@ export class ECSRoute extends ECPrototype {
 	 */
 	public getAllowedMime(): ECMime {
 
-		return this.allowedMime;
+		return this.allowedMime || ECMime.initWithComponents("application", "json");
 
 	}
 
@@ -180,7 +182,7 @@ export class ECSRoute extends ECPrototype {
 	 * Get the validator for the route.
 	 * @return {ECSValidator} An ECSValidator instance.
 	 */
-	public getValidator(): ECSValidator {
+	public getValidator(): ECSValidator | undefined {
 
 		return this.validator;
 

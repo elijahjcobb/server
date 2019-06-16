@@ -32,13 +32,13 @@
   "@elijahjcobb/encryption": "latest",
   "@elijahjcobb/error": "latest",
   "@elijahjcobb/prototypes": "latest",
-  "@elijahjcobb/types": "latest",
-  "@types/express": "latest",
-  "express": "latest"
+  "express": "latest",
+  "typit": "^0.6.1"
  },
  "devDependencies": {
   "@types/node": "latest",
   "tslint": "latest",
+  "@types/express": "latest",
   "typescript": "latest"
  },
  "files": [

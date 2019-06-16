@@ -22,27 +22,36 @@
  *
  */
 
-import { ECSRequest } from "../..";
-import { ECTInput, ECTOutput, ECTValidator, ECTReport } from "@elijahjcobb/types";
-import { ECPrototype } from "@elijahjcobb/collections";
-import { ECErrorOriginType, ECErrorStack, ECErrorType } from "@elijahjcobb/error";
+import { ECSRequest, ECSResponse } from "../..";
+import { ECArray, ECPrototype } from "@elijahjcobb/collections";
+import { ObjectType, MalformedObjectError } from "typit";
 
 /**
  * A class to verify a request has a certain type signature.
  */
 export class ECSTypeValidator extends ECPrototype {
 
-	private readonly validator: ECTValidator;
+	private readonly validator: ObjectType;
 
 	/**
-	 * Provide a structure as an ECTInput instance from package @elijahjcobb/types.
-	 * @param {ECTInput} structure An ECTInput instance.
+	 * Provide a validator as an ECTInput instance from package @elijahjcobb/types.
+	 * @param validator An ECTInput instance.
 	 */
-	public constructor(structure: ECTInput) {
+	public constructor(validator: ObjectType) {
 
 		super();
 
-		this.validator = new ECTValidator(structure);
+		this.validator = validator;
+
+	}
+
+	/**
+	 * Get all errors for the given object.
+	 * @param object The object to be tested.
+	 */
+	public getErrors(object: object): ECArray<MalformedObjectError> {
+
+		return ECArray.initFromNativeArray(this.validator.listNonConformities(object));
 
 	}
 
@@ -51,21 +60,30 @@ export class ECSTypeValidator extends ECPrototype {
 	 * @param {ECSRequest} request The request.
 	 * @return {Promise<void>} A promise.
 	 */
-	public async verifyRequest(request: ECSRequest): Promise<void> {
+	public verifyRequest(request: ECSRequest): ECSResponse | undefined {
 
-		this.validator.verify(request.getBody().toNativeObject());
+		const errors: ECArray<MalformedObjectError> = this.getErrors(request.getBody().toNativeObject());
+		if (errors.isEmpty()) return undefined;
 
-	}
+		return new ECSResponse({
+			data: {
+				errors: {
+					type: errors.map((error: MalformedObjectError): object => {
 
-	/**
-	 * Verify a object.
-	 * @param {ECSRequest} object An object.
-	 * @return {Promise<void>} A promise.
-	 */
-	public async verifyObject(object: object): Promise<void> {
+						return {
+							path: error.readablePath,
+							type: {
+								expected: error.expectedType.getTypeName(),
+								actual: error.actualType.getTypeName()
+							},
+							value: error.actualValue
+						};
 
-		this.validator.verify(object);
-
+					})
+				}
+			},
+			status: 406
+		});
 
 	}
 }

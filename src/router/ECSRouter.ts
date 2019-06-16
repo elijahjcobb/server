@@ -24,11 +24,13 @@
 
 import { ECArrayList } from "@elijahjcobb/collections";
 import { ECErrorStack, ECError, ECErrorType, ECErrorOriginType } from "@elijahjcobb/error";
-import { ECSRequest, ECSResponse, ECSRoute, ECSRouterPostProcessHandler } from "..";
+import { ECSMiddlewareHandler, ECSRequest, ECSResponse, ECSRoute, ECSRouterPostProcessHandler, ECSValidator } from "..";
 import { ECSRequestType } from "..";
 import Express = require("express");
 import BodyParser = require("body-parser");
 import { ECSServer } from "../ECSServer";
+import { response } from "express";
+import { ECPrototypesMime } from "@elijahjcobb/prototypes/dist/ECPrototypesMime";
 
 /**
  * An class to be extended on instantiated that handles different routes and acts as a router.
@@ -60,8 +62,8 @@ export class ECSRouter extends ECSServer {
 			timeStamp: Date.now()
 		});
 
-		let errorMessage: string = error instanceof Error ? error.message : error + "";
-		let stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error(errorMessage));
+		const errorMessage: string = error instanceof Error ? error.message : error + "";
+		const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error(errorMessage));
 		stack.print();
 
 		ECSRouter.prototype.notifyErrorHandler(stack);
@@ -75,7 +77,7 @@ export class ECSRouter extends ECSServer {
 	 */
 	private checkErrorForExpressOrigin(error: Error, res: Express.Response): void {
 
-		let msg: string = error.message;
+		const msg: string = error.message;
 
 		if (!msg) {
 			return this.handleInternalError(error, res);
@@ -83,14 +85,14 @@ export class ECSRouter extends ECSServer {
 
 		if (msg === "request entity too large") {
 
-			let stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FileToLarge, new Error("The file you tried to upload is too large."));
+			const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FileToLarge, new Error("The file you tried to upload is too large."));
 			this.handleError(stack, res);
 
 		} else if ((msg.indexOf("JSON") !== -1)) {
 
 			console.error(msg);
 
-			let stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FailedToParseJSON, new Error("The JSON you supplied was not valid."));
+			const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FailedToParseJSON, new Error("The JSON you supplied was not valid."));
 			this.handleError(stack, res);
 
 		} else {
@@ -110,8 +112,8 @@ export class ECSRouter extends ECSServer {
 
 		if (error instanceof ECErrorStack) {
 
-			let errorStack: ECErrorStack = error as ECErrorStack;
-			let clientError: ECError = errorStack.getErrorForClient();
+			const errorStack: ECErrorStack = error as ECErrorStack;
+			const clientError: ECError = errorStack.getErrorForClient();
 			res.status(400).json({
 				error: clientError.getMessage(),
 				origin: {
@@ -160,7 +162,7 @@ export class ECSRouter extends ECSServer {
 
 		if (error instanceof ECErrorStack) {
 
-			let errorStack: ECErrorStack = error as ECErrorStack;
+			const errorStack: ECErrorStack = error as ECErrorStack;
 			errorStack.print();
 			ECSRouter.prototype.notifyErrorHandler(errorStack);
 
@@ -168,13 +170,13 @@ export class ECSRouter extends ECSServer {
 
 			if (typeof error === "string") {
 
-				let stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error(error));
+				const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error(error));
 				stack.print();
 				ECSRouter.prototype.notifyErrorHandler(stack);
 
 			} else {
 
-				let stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error("There was an internal unhandled error in post processing that resulted in an unknown type."));
+				const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error("There was an internal unhandled error in post processing that resulted in an unknown type."));
 				console.error(error);
 				stack.print();
 				ECSRouter.prototype.notifyErrorHandler(stack);
@@ -192,41 +194,55 @@ export class ECSRouter extends ECSServer {
 	 */
 	public createRouter(): Express.Router {
 
-		let rootHandler: Function = async (route: ECSRoute, req: Express.Request, res: Express.Response): Promise<void> => {
+		const rootHandler: (route: ECSRoute, req: Express.Request, res: Express.Response) => Promise<void> = async (route: ECSRoute, req: Express.Request, res: Express.Response): Promise<void> => {
 
 
-			let request: ECSRequest = await ECSRequest.initWithRequest(req);
+			let request: ECSRequest = new ECSRequest(req);
 
 			if (route.getIsRawBody()) {
-				let contentType: string = request.getHeader("Content-Type");
-				if (!route.getAllowedMime().isMimeStringAllowed(contentType)) {
-					let stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FileIncorrectType, new Error("Incorrect file type."));
+
+				const contentType: string | undefined = request.getHeader("Content-Type");
+
+				if (!contentType) {
+					const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.NullOrUndefined, new Error("Content-Type header is not present."));
+					return this.handleError(stack, res);
+				}
+
+				const mime: ECPrototypesMime | undefined = route.getAllowedMime();
+				if (mime === undefined || !mime.isMimeStringAllowed(contentType)) {
+					const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FileIncorrectType, new Error("Incorrect file type. Mime invalid."));
 					return this.handleError(stack, res);
 				}
 			}
 
-			// Call the auth middleware function.
+			// Call the auth middleware function. To set session information.
 			if (ECSRouter.authMiddleware !== undefined) request = await ECSRouter.authMiddleware(request);
 
-			if (route.getValidator() !== null && route.getValidator() !== undefined) {
+			const validator: ECSValidator | undefined = route.getValidator();
+			if (validator) {
+
+				let responseError: ECSResponse | undefined;
 
 				try {
 
-					await route.getValidator().validate(request);
+					responseError = await validator.validate(request);
 
 				} catch (e) {
 
 					return this.handleError(e, res);
 
 				}
+
+				if (responseError) {
+
+					res.status(responseError.getStatus()).json(responseError.getData());
+					return;
+				}
 			}
 
 			try {
 
-				for (let i: number = 0; i < ECSRouter.middlewares.size(); i ++) {
-
-					await ECSRouter.middlewares.get(i)(request);
-				}
+				await ECSRouter.middlewares.forEachSync( async (middleware: ECSMiddlewareHandler): Promise<void> => await middleware(request));
 
 			} catch (e) {
 
@@ -236,13 +252,14 @@ export class ECSRouter extends ECSServer {
 
 			route.getHandler()(request).then((value: ECSResponse) => {
 
+				value.getHeaders().forEach((key: string, value: string | number) => res.setHeader(key, value));
 				res.setHeader("X-Powered-By", "@elijahjcobb/server on NPM");
 
 				if (value.getIsRaw()) {
 
-					let data: Buffer = value.getData() as Buffer;
+					const data: Buffer = value.getData() as Buffer;
 
-					res.writeHead(200, {
+					res.writeHead(value.getStatus(), {
 						"Content-Type": value.getMime().toString(),
 						"Content-Disposition": `inline; filename=${value.getName()}.${value.getMime().extension}`,
 						"Content-Length": data.length
@@ -252,11 +269,16 @@ export class ECSRouter extends ECSServer {
 
 				} else {
 
-					res.json(value.getData());
+					res.status(value.getStatus()).json(value.getData());
 
 				}
 
-				if (route.hasPostProcessHandler()) route.getPostProcessHandler()(request).then(() => {}).catch((err: any) => ECSRouter.prototype.handlePostProcessError(err));
+				const postProcessHandler: ECSRouterPostProcessHandler | undefined = route.getPostProcessHandler();
+				if (postProcessHandler) {
+					postProcessHandler(request)
+						.then(() => {})
+						.catch((err: any) => ECSRouter.prototype.handlePostProcessError(err));
+				}
 
 			}).catch((error: any) => {
 
@@ -270,6 +292,7 @@ export class ECSRouter extends ECSServer {
 			let parserMiddleware: Express.RequestHandler;
 
 			if (route.getIsRawBody()) {
+
 				parserMiddleware = BodyParser.raw({
 					inflate: true,
 					limit: route.getBodySizeLimit().toString(),
@@ -332,7 +355,7 @@ export class ECSRouter extends ECSServer {
 
 	public add(route: ECSRoute): void {
 
-		this.routes.add(route);;
+		this.routes.add(route);
 
 	}
 

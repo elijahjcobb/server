@@ -22,7 +22,7 @@
  *
  */
 
-import { ECSRequest } from "../..";
+import { ECSRequest, ECSResponse } from "../..";
 
 
 /**
@@ -46,6 +46,6 @@ export interface ECSAuthValidatorHandler {
 	 * @param {ECSRequest} request The incoming request.
 	 * @return {Promise<void>} A promise.
 	 */
-	(request: ECSRequest): Promise<void>;
+	(request: ECSRequest): Promise<ECSResponse | undefined>;
 
 }

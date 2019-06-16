@@ -23,8 +23,26 @@
  */
 
 import { ECGenerator } from "@elijahjcobb/encryption";
-import { ECPrototype } from "@elijahjcobb/collections";
+import { ECDictionary, ECPrototype } from "@elijahjcobb/collections";
 import { ECMime } from "@elijahjcobb/prototypes";
+
+/**
+ * @param data The data to be returned.
+ * @param status The status to be returned.
+ * @param name The name of the file to be returned.
+ * @param mime The mime of the file to be returned.
+ */
+export type ECSResponseConstructor = {
+	data: any;
+	mime?: ECMime;
+	name?: string;
+	status?: number;
+	headers?: ECSHeader;
+};
+
+export type ECSHeader = {
+	[key: string]: string | number
+};
 
 /**
  * A class representing a response from the server.
@@ -35,21 +53,23 @@ export class ECSResponse extends ECPrototype {
 	private readonly mime: ECMime;
 	private readonly isRaw: boolean;
 	private readonly name: string;
+	private readonly status: number;
+	private readonly headers: ECSHeader;
 
 	/**
 	 * Create a new response instance. Provide data of any type and an optional mime and name.
-	 * @param data Any data type.
-	 * @param {ECMime} mime An ECMime instance. Defaults to application/json.
-	 * * @param {string} name The name of the file.
+	 * @param object An object conforming to ECSResponseConstructor.
 	 */
-	public constructor(data: any, mime?: ECMime, name?: string) {
+	public constructor(object: ECSResponseConstructor) {
 
 		super();
 
-		this.data = data;
-		this.isRaw = mime !== undefined;
-		this.mime = mime || ECMime.initWithComponents("application", "json");
-		this.name = name || ECGenerator.randomId();
+		this.data = object.data;
+		this.isRaw = object.mime !== undefined;
+		this.mime = object.mime || ECMime.initWithComponents("application", "json");
+		this.name = object.name || ECGenerator.randomId();
+		this.status = object.status || 200;
+		this.headers = object.headers || {};
 
 	}
 
@@ -90,6 +110,21 @@ export class ECSResponse extends ECPrototype {
 	public getName(): string {
 
 		return this.name;
+
+	}
+
+	/**
+	 * Get the status of the response.
+	 */
+	public getStatus(): number {
+
+		return this.status;
+
+	}
+
+	public getHeaders(): ECDictionary<string, string | number> {
+
+		return ECDictionary.initWithNativeObject(this.headers);
 
 	}
 

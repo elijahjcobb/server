@@ -24,7 +24,7 @@
 
 import { ECPrototype } from "@elijahjcobb/collections";
 import { ECSTypeValidator } from "./ECSTypeValidator";
-import { ECSRequest } from "../..";
+import { ECSRequest, ECSResponse } from "../..";
 import { ECSAuthValidator, ECSAuthValidatorHandler } from "./ECSAuthValidator";
 
 /**
@@ -32,8 +32,8 @@ import { ECSAuthValidator, ECSAuthValidatorHandler } from "./ECSAuthValidator";
  */
 export class ECSValidator extends ECPrototype {
 
-	public typeValidator: ECSTypeValidator;
-	public authorizationValidator: ECSAuthValidator;
+	public typeValidator: ECSTypeValidator | undefined;
+	public authorizationValidator: ECSAuthValidator | undefined;
 
 	/**
 	 * Create a new instance.
@@ -68,17 +68,19 @@ export class ECSValidator extends ECPrototype {
 	 * @param {ECSRequest} request The request to be validated.
 	 * @return {Promise<void>} A promise.
 	 */
-	public async validate(request: ECSRequest): Promise<void> {
+	public async validate(request: ECSRequest): Promise<ECSResponse | undefined> {
 
-		if (this.typeValidator !== null && this.typeValidator !== undefined) {
+		if (this.typeValidator) {
 
-			await this.typeValidator.verifyRequest(request);
+			const res: ECSResponse | undefined = await this.typeValidator.verifyRequest(request);
+			if (res) return res;
 
 		}
 
-		if (this.authorizationValidator !== null && this.authorizationValidator !== undefined) {
+		if (this.authorizationValidator) {
 
-			await this.authorizationValidator.verifyRequest(request);
+			const res: ECSResponse | undefined = await this.authorizationValidator.verifyRequest(request);
+			if (res) return res;
 
 		}
 
