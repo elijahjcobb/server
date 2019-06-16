@@ -26,7 +26,8 @@ export { ECSRequestParameter } from "./route/validator/ECSRequestParameter";
 export { ECSTypeValidator } from "./route/validator/ECSTypeValidator";
 export { ECSAuthValidator, ECSAuthValidatorHandler } from "./route/validator/ECSAuthValidator";
 export { ECSValidator } from "./route/validator/ECSValidator";
-export { ECSRequestType,
+export {
+	ECSRequestType,
 	ECSRequestProtocol,
 	ECSJSTypes
 } from "./interfaces/ECSTypes";
@@ -36,7 +37,8 @@ export { ECSRouter } from "./router/ECSRouter";
 export { ECSRouterError } from "./router/ECSRouterError";
 export { ECSRequest } from "./req-res/ECSRequest";
 export { ECSResponse } from "./req-res/ECSResponse";
-export { ECSErrorHandler,
+export {
+	ECSErrorHandler,
 	ECSMiddlewareHandler,
 	ECSRouterHandler,
 	ECSRouterPostProcessHandler

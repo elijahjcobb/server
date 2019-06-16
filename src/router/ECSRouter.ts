@@ -29,8 +29,7 @@ import { ECSRequestType } from "..";
 import Express = require("express");
 import BodyParser = require("body-parser");
 import { ECSServer } from "../ECSServer";
-import { response } from "express";
-import { ECPrototypesMime } from "@elijahjcobb/prototypes/dist/ECPrototypesMime";
+import { ECMime } from "@elijahjcobb/prototypes";
 
 /**
  * An class to be extended on instantiated that handles different routes and acts as a router.
@@ -39,6 +38,12 @@ export class ECSRouter extends ECSServer {
 
 	public routes: ECArrayList<ECSRoute> = new ECArrayList<ECSRoute>();
 	public router: Express.Router = Express.Router();
+
+	public constructor() {
+
+		super();
+
+	}
 
 	/**
 	 * Notify the error handler that the package has exposed.
@@ -155,39 +160,6 @@ export class ECSRouter extends ECSServer {
 	}
 
 	/**
-	 * Handle an error that is caused from the post process handler.
-	 * @param error The error.
-	 */
-	private handlePostProcessError(error: any): void {
-
-		if (error instanceof ECErrorStack) {
-
-			const errorStack: ECErrorStack = error as ECErrorStack;
-			errorStack.print();
-			ECSRouter.prototype.notifyErrorHandler(errorStack);
-
-		} else {
-
-			if (typeof error === "string") {
-
-				const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error(error));
-				stack.print();
-				ECSRouter.prototype.notifyErrorHandler(stack);
-
-			} else {
-
-				const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error("There was an internal unhandled error in post processing that resulted in an unknown type."));
-				console.error(error);
-				stack.print();
-				ECSRouter.prototype.notifyErrorHandler(stack);
-
-			}
-
-		}
-
-	}
-
-	/**
 	 * This is the main function from a ECSRouter. Call this method after you have added routes the instance.
 	 * This method will compile all ECS instances into a Express.Router instance that can be used in a HTTP/S server.
 	 * @return {Express.Router} An Express.Router instance from the ECSRoute instances on this instance.
@@ -208,7 +180,7 @@ export class ECSRouter extends ECSServer {
 					return this.handleError(stack, res);
 				}
 
-				const mime: ECPrototypesMime | undefined = route.getAllowedMime();
+				const mime: ECMime | undefined = route.getAllowedMime();
 				if (mime === undefined || !mime.isMimeStringAllowed(contentType)) {
 					const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.User, ECErrorType.FileIncorrectType, new Error("Incorrect file type. Mime invalid."));
 					return this.handleError(stack, res);
@@ -277,7 +249,7 @@ export class ECSRouter extends ECSServer {
 				if (postProcessHandler) {
 					postProcessHandler(request)
 						.then(() => {})
-						.catch((err: any) => ECSRouter.prototype.handlePostProcessError(err));
+						.catch((err: any) => ECSRouter.handlePostProcessError(err));
 				}
 
 			}).catch((error: any) => {
@@ -353,10 +325,48 @@ export class ECSRouter extends ECSServer {
 
 	}
 
+	/**
+	 * Add a route to this router.
+	 * @param route A n ECSQRoute instance.
+	 */
 	public add(route: ECSRoute): void {
 
 		this.routes.add(route);
 
 	}
+
+	/**
+	 * Handle an error that is caused from the post process handler.
+	 * @param error The error.
+	 */
+	private static handlePostProcessError(error: any): void {
+
+		if (error instanceof ECErrorStack) {
+
+			const errorStack: ECErrorStack = error as ECErrorStack;
+			errorStack.print();
+			ECSRouter.prototype.notifyErrorHandler(errorStack);
+
+		} else {
+
+			if (typeof error === "string") {
+
+				const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error(error));
+				stack.print();
+				ECSRouter.prototype.notifyErrorHandler(stack);
+
+			} else {
+
+				const stack: ECErrorStack = ECErrorStack.newWithMessageAndType(ECErrorOriginType.Unhandled, ECErrorType.InternalUnHandled, new Error("There was an internal unhandled error in post processing that resulted in an unknown type."));
+				console.error(error);
+				stack.print();
+				ECSRouter.prototype.notifyErrorHandler(stack);
+
+			}
+
+		}
+
+	}
+
 
 }
