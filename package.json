@@ -1,6 +1,6 @@
 {
  "name": "@elijahjcobb/server",
- "version": "0.0.31",
+ "version": "0.0.32",
  "description": "Create a HTTP/S server easily with advanced features and functionality.",
  "main": "dist/index",
  "types": "dist/index",
@@ -33,7 +33,7 @@
   "@elijahjcobb/error": "latest",
   "@elijahjcobb/prototypes": "latest",
   "express": "latest",
-  "typit": "^0.6.1"
+  "typit": "latest"
  },
  "devDependencies": {
   "@types/node": "latest",
