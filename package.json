@@ -1,47 +1,47 @@
 {
- "name": "@elijahjcobb/server",
- "version": "0.0.32",
- "description": "Create a HTTP/S server easily with advanced features and functionality.",
- "main": "dist/index",
- "types": "dist/index",
- "scripts": {
-  "test": "echo \"Error: no test specified\" && exit 1",
-  "prepublishOnly": "npm run compile",
-  "compile": "npm run clean && npm run build",
-  "watch": "tsc -w -p .",
-  "clean": "rm -rf dist",
-  "build": "/usr/local/bin/tsc -p ."
- },
- "repository": {
-  "type": "git",
-  "url": "git+https://github.com/elijahjcobb/server.git"
- },
- "publishConfig": {
-  "access": "public"
- },
- "keywords": [],
- "author": "Elijah Cobb <elijah@elijahcobb.com> (https://elijahcobb.com/)",
- "license": "MIT",
- "bugs": {
-  "url": "https://github.com/elijahjcobb/server/issues"
- },
- "homepage": "https://github.com/elijahjcobb/server#readme",
- "dependencies": {
-  "@elijahjcobb/collections": "latest",
-  "@elijahjcobb/console": "latest",
-  "@elijahjcobb/encryption": "latest",
-  "@elijahjcobb/error": "latest",
-  "@elijahjcobb/prototypes": "latest",
-  "express": "latest",
-  "typit": "latest"
- },
- "devDependencies": {
-  "@types/node": "latest",
-  "tslint": "latest",
-  "@types/express": "latest",
-  "typescript": "latest"
- },
- "files": [
-  "dist"
- ]
+  "name": "@elijahjcobb/server",
+  "version": "0.0.33",
+  "description": "Create a HTTP/S server easily with advanced features and functionality.",
+  "main": "dist/index",
+  "types": "dist/index",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run compile",
+    "compile": "npm run clean && npm run build",
+    "watch": "tsc -w -p .",
+    "clean": "rm -rf dist",
+    "build": "/usr/local/bin/tsc -p ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elijahjcobb/server.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [],
+  "author": "Elijah Cobb <elijah@elijahcobb.com> (https://elijahcobb.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/elijahjcobb/server/issues"
+  },
+  "homepage": "https://github.com/elijahjcobb/server#readme",
+  "dependencies": {
+    "@elijahjcobb/collections": "latest",
+    "@elijahjcobb/console": "latest",
+    "@elijahjcobb/encryption": "latest",
+    "@elijahjcobb/error": "latest",
+    "@elijahjcobb/prototypes": "latest",
+    "express": "latest",
+    "typit": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "tslint": "latest",
+    "@types/express": "latest",
+    "typescript": "latest"
+  },
+  "files": [
+    "dist"
+  ]
 }

@@ -46,9 +46,9 @@ const route: ECSRoute = new ECSRoute(ECSRequestType.POST, "/foo/:id", async (req
 		name: req.getBody().get("name")
 	});
 
-}, new ECSValidator(new ECSTypeValidator(new Typit.ObjectType({
+}, new ECSValidator(new ECSTypeValidator({
 	name: Typit.StandardType.STRING
-}))));
+})));
 
 router.add(route);
 
