@@ -24,24 +24,24 @@
 
 import { ECSRequest, ECSResponse } from "../..";
 import { ECArray, ECPrototype } from "@elijahjcobb/collections";
-import { ObjectType, MalformedObjectError } from "typit";
+import { ObjectType, MalformedObjectError, ObjectTypeDefinition } from "typit";
 
 /**
  * A class to verify a request has a certain type signature.
  */
 export class ECSTypeValidator extends ECPrototype {
 
-	private readonly validator: ObjectType;
+	private readonly types: ObjectType;
 
 	/**
-	 * Provide a validator as an ECTInput instance from package @elijahjcobb/types.
-	 * @param validator An ECTInput instance.
+	 * Provide a types as an ECTInput instance from package @elijahjcobb/types.
+	 * @param types An ECTInput instance.
 	 */
-	public constructor(validator: ObjectType) {
+	public constructor(types: ObjectTypeDefinition) {
 
 		super();
 
-		this.validator = validator;
+		this.types = new ObjectType(types);
 
 	}
 
@@ -51,7 +51,7 @@ export class ECSTypeValidator extends ECPrototype {
 	 */
 	public getErrors(object: object): ECArray<MalformedObjectError> {
 
-		return ECArray.initFromNativeArray(this.validator.listNonConformities(object));
+		return ECArray.initFromNativeArray(this.types.listNonConformities(object));
 
 	}
 
