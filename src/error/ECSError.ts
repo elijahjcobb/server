@@ -22,39 +22,53 @@
  *
  */
 
-import {
-	ECSRequest,
-	ECSRequestType,
-	ECSResponse,
-	ECSRoute,
-	ECSRouter,
-	ECSServer,
-	ECSTypeValidator,
-	ECSValidator,
-} from "./index";
+export class ECSError {
 
-import * as Typit from "typit";
-import { ECSError } from "./error/ECSError";
+	private message: string | undefined;
+	private readonly genericMessage: string = "Internal server error.";
+	private statusCode: number | undefined;
+	private shouldObfuscate: boolean = true;
 
-const server: ECSServer = new ECSServer();
+	public msg(value: string): ECSError {
 
-const router: ECSRouter = new ECSRouter();
+		this.message = value;
+		return this;
 
-const route: ECSRoute = new ECSRoute(ECSRequestType.POST, "/foo/:id", async (req: ECSRequest): Promise<ECSResponse> => {
+	}
 
-	throw ECSError.init().msg("foo foo").show();
+	public code(value: number): ECSError {
 
-	return new ECSResponse({
-		id: req.getParameters().get("id"),
-		name: req.getBody().get("name")
-	});
+		this.statusCode = value;
+		return this;
 
-}, new ECSValidator(new ECSTypeValidator({
-	name: Typit.StandardType.STRING
-})));
+	}
 
-router.add(route);
+	public hide(): ECSError {
 
-server.routers.set("/", router);
+		this.shouldObfuscate = true;
+		return this;
 
-server.startHTTP(3000);
+	}
+
+	public show(): ECSError {
+
+		this.shouldObfuscate = false;
+		return this;
+
+	}
+
+	public get(): { status: number, message: string } {
+
+		const res: { status: number, message: string } = {
+			message: this.shouldObfuscate ? this.genericMessage : this.message as string,
+			status: this.statusCode === undefined ? 500 : this.statusCode
+		};
+
+		console.error(`ECSError (${new Date().toString()}) {\n\tCODE: ${res.status}\n\tMESSAGE: ${res.message}\n}`);
+
+		return res;
+	}
+
+	public static init(): ECSError { return new ECSError(); }
+
+}

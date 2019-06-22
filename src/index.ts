@@ -34,7 +34,6 @@ export {
 export { ECSRoute } from "./route/ECSRoute";
 export { ECSRouteFileUpload } from "./route/ECSRouteFileUpload";
 export { ECSRouter } from "./router/ECSRouter";
-export { ECSRouterError } from "./router/ECSRouterError";
 export { ECSRequest } from "./req-res/ECSRequest";
 export { ECSResponse } from "./req-res/ECSResponse";
 export {
@@ -44,3 +43,4 @@ export {
 	ECSRouterPostProcessHandler
 } from "./interfaces/ECSHandlers";
 export { ECSServer } from "./ECSServer";
+export { ECSError } from "./error/ECSError";
