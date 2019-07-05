@@ -24,26 +24,27 @@
 
 import { ECArrayList } from "@elijahjcobb/collections";
 import { ECErrorStack, ECError, ECErrorType, ECErrorOriginType } from "@elijahjcobb/error";
-import { ECSMiddlewareHandler, ECSRequest, ECSResponse, ECSRoute, ECSRouterPostProcessHandler, ECSValidator } from "..";
+import {
+	ECSMiddlewareHandler,
+	ECSRequest,
+	ECSResponse,
+	ECSRoute,
+	ECSRouterPostProcessHandler,
+	ECSServer,
+	ECSValidator
+} from "..";
 import { ECSRequestType } from "..";
 import Express = require("express");
 import BodyParser = require("body-parser");
-import { ECSServer } from "../ECSServer";
 import { ECMime } from "@elijahjcobb/prototypes";
 
 /**
  * An class to be extended on instantiated that handles different routes and acts as a router.
  */
-export class ECSRouter extends ECSServer {
+export class ECSRouter {
 
 	public routes: ECArrayList<ECSRoute> = new ECArrayList<ECSRoute>();
 	public router: Express.Router = Express.Router();
-
-	public constructor() {
-
-		super();
-
-	}
 
 	/**
 	 * Notify the error handler that the package has exposed.
@@ -51,7 +52,7 @@ export class ECSRouter extends ECSServer {
 	 */
 	private notifyErrorHandler(stack: ECErrorStack): void {
 
-		if (ECSRouter.errorHandler) ECSRouter.errorHandler(stack);
+		if (ECSServer.errorHandler) ECSServer.errorHandler(stack);
 
 	}
 
@@ -159,6 +160,12 @@ export class ECSRouter extends ECSServer {
 
 	}
 
+	protected use(path: string, router: ECSRouter): void {
+
+		this.router.use(path, router.getRouter());
+
+	}
+
 	/**
 	 * This is the main function from a ECSRouter. Call this method after you have added routes the instance.
 	 * This method will compile all ECS instances into a Express.Router instance that can be used in a HTTP/S server.
@@ -167,7 +174,6 @@ export class ECSRouter extends ECSServer {
 	public createRouter(): Express.Router {
 
 		const rootHandler: (route: ECSRoute, req: Express.Request, res: Express.Response) => Promise<void> = async (route: ECSRoute, req: Express.Request, res: Express.Response): Promise<void> => {
-
 
 			let request: ECSRequest = new ECSRequest(req);
 
@@ -188,7 +194,7 @@ export class ECSRouter extends ECSServer {
 			}
 
 			// Call the auth middleware function. To set session information.
-			if (ECSRouter.authMiddleware !== undefined) request = await ECSRouter.authMiddleware(request);
+			if (ECSServer.authMiddleware !== undefined) request = await ECSServer.authMiddleware(request);
 
 			const validator: ECSValidator | undefined = route.getValidator();
 			if (validator) {
@@ -214,7 +220,7 @@ export class ECSRouter extends ECSServer {
 
 			try {
 
-				await ECSRouter.middlewares.forEachSync( async (middleware: ECSMiddlewareHandler): Promise<void> => await middleware(request));
+				await ECSServer.middlewares.forEachSync( async (middleware: ECSMiddlewareHandler): Promise<void> => await middleware(request));
 
 			} catch (e) {
 

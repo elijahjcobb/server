@@ -22,36 +22,66 @@
  *
  */
 
-import {
-	ECSRequest,
-	ECSRequestType,
-	ECSResponse,
-	ECSRoute,
-	ECSRouter,
-	ECSServer,
-	ECSTypeValidator,
-	ECSValidator,
-} from "./index";
-
-import * as Typit from "typit";
+import { ECSRequest, ECSRequestType, ECSResponse, ECSRoute, ECSRouter, ECSServer } from "./index";
+import * as Express from "express";
 
 const server: ECSServer = new ECSServer();
 
-const router: ECSRouter = new ECSRouter();
+class Child extends ECSRouter {
 
-const route: ECSRoute = new ECSRoute(ECSRequestType.POST, "/foo/:id", async (req: ECSRequest): Promise<ECSResponse> => {
+	private async handler(req: ECSRequest): Promise<ECSResponse> {
 
-	return new ECSResponse({
-		id: req.getParameters().get("id"),
-		name: req.getBody().get("name")
-	});
+		return new ECSResponse({foo: 1});
 
-}, new ECSValidator(new ECSTypeValidator(new Typit.ObjectType({
-	name: Typit.StandardType.STRING
-}))));
+	}
 
-router.add(route);
+	public getRouter(): Express.Router {
 
-server.routers.set("/", router);
+		this.add(new ECSRoute(
+			ECSRequestType.GET,
+			"/",
+			this.handler
 
+		));
+
+		return this.createRouter();
+	}
+
+}
+
+class Parent extends ECSRouter {
+
+	public getRouter(): Express.Router {
+
+		this.use("/c", new Child());
+
+		return this.createRouter();
+	}
+
+}
+
+class Grandparent extends ECSRouter {
+
+	private async handler(req: ECSRequest): Promise<ECSResponse> {
+
+		return new ECSResponse({foo: 1});
+
+	}
+
+	public getRouter(): Express.Router {
+
+		this.use("/p", new Parent());
+		this.add(new ECSRoute(
+			ECSRequestType.GET,
+			"/foo",
+			this.handler
+		));
+
+		return this.createRouter();
+	}
+
+}
+
+server.use("/g", new Grandparent());
+git
 server.startHTTP(3000);

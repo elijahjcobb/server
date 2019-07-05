@@ -42,7 +42,7 @@ export class ECSServer extends ECPrototype {
 	private httpsServer: HTTPSServer.Server | undefined;
 	public httpConfig: ECSServerHTTPConfig | undefined;
 	public httpsConfig: ECSServerHTTPSConfig | undefined;
-	public routers: ECMap<string, ECSRouter> = new ECMap<string, ECSRouter>();
+	public routers: ECMap<string, ECSRouter>;
 	public static middlewares: ECArrayList<ECSMiddlewareHandler> = new ECArrayList<ECSMiddlewareHandler>();
 	public static errorHandler: ECSErrorHandler;
 	public static authMiddleware: ECSAuthorizationMiddleware;
@@ -50,6 +50,8 @@ export class ECSServer extends ECPrototype {
 	public constructor(config?: { http: ECSServerHTTPConfig, https: ECSServerHTTPSConfig }) {
 
 		super();
+
+		this.routers = new ECMap<string, ECSRouter>();
 
 		if (!config) return;
 
