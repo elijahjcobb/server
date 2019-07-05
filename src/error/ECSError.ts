@@ -22,25 +22,53 @@
  *
  */
 
-export { ECSRequestParameter } from "./route/validator/ECSRequestParameter";
-export { ECSTypeValidator } from "./route/validator/ECSTypeValidator";
-export { ECSAuthValidator, ECSAuthValidatorHandler } from "./route/validator/ECSAuthValidator";
-export { ECSValidator } from "./route/validator/ECSValidator";
-export {
-	ECSRequestType,
-	ECSRequestProtocol,
-	ECSJSTypes
-} from "./interfaces/ECSTypes";
-export { ECSRoute } from "./route/ECSRoute";
-export { ECSRouteFileUpload } from "./route/ECSRouteFileUpload";
-export { ECSRouter } from "./router/ECSRouter";
-export { ECSRequest } from "./req-res/ECSRequest";
-export { ECSResponse } from "./req-res/ECSResponse";
-export {
-	ECSErrorHandler,
-	ECSMiddlewareHandler,
-	ECSRouterHandler,
-	ECSRouterPostProcessHandler
-} from "./interfaces/ECSHandlers";
-export { ECSServer } from "./ECSServer";
-export { ECSError } from "./error/ECSError";
+export class ECSError {
+
+	private message: string | undefined;
+	private readonly genericMessage: string = "Internal server error.";
+	private statusCode: number | undefined;
+	private shouldObfuscate: boolean = true;
+
+	public msg(value: string): ECSError {
+
+		this.message = value;
+		return this;
+
+	}
+
+	public code(value: number): ECSError {
+
+		this.statusCode = value;
+		return this;
+
+	}
+
+	public hide(): ECSError {
+
+		this.shouldObfuscate = true;
+		return this;
+
+	}
+
+	public show(): ECSError {
+
+		this.shouldObfuscate = false;
+		return this;
+
+	}
+
+	public get(): { status: number, message: string } {
+
+		const res: { status: number, message: string } = {
+			message: this.shouldObfuscate ? this.genericMessage : this.message as string,
+			status: this.statusCode === undefined ? 500 : this.statusCode
+		};
+
+		console.error(`ECSError (${new Date().toString()}) {\n\tCODE: ${res.status}\n\tMESSAGE: ${res.message}\n}`);
+
+		return res;
+	}
+
+	public static init(): ECSError { return new ECSError(); }
+
+}

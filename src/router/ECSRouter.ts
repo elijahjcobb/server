@@ -37,6 +37,7 @@ import { ECSRequestType } from "..";
 import Express = require("express");
 import BodyParser = require("body-parser");
 import { ECMime } from "@elijahjcobb/prototypes";
+import { ECSError } from "../error/ECSError";
 
 /**
  * An class to be extended on instantiated that handles different routes and acts as a router.
@@ -151,6 +152,11 @@ export class ECSRouter {
 				timeStamp: Date.now()
 			});
 
+
+		} else if (error instanceof ECSError) {
+
+			const values: { message: string, status: number } = error.get();
+			res.status(values.status).json({ error: values.message });
 
 		} else {
 
