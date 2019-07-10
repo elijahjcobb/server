@@ -64,7 +64,7 @@ export class ECSError {
 			status: this.statusCode === undefined ? 500 : this.statusCode
 		};
 
-		console.error(`ECSError (${new Date().toString()}) {\n\tCODE: ${res.status}\n\tMESSAGE: ${res.message}\n}`);
+		console.error(`ECSError (${new Date().toString()}) {\n\tCODE: ${this.statusCode || 500}\n\tMESSAGE: ${this.message || this.genericMessage}\n}`);
 
 		return res;
 	}
