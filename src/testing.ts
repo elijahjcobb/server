@@ -21,3 +21,33 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
+
+import { ECSRequest, ECSRequestType, ECSResponse, ECSRoute, ECSRouter, ECSServer } from "./index";
+import * as Express from "express";
+
+
+const s: ECSServer = new ECSServer();
+
+class Router extends ECSRouter {
+
+	public getRouter(): Express.Router {
+
+		this.add(new ECSRoute(
+			ECSRequestType.GET,
+			"/",
+			async (req: ECSRequest): Promise<ECSResponse> => {
+
+				return new ECSResponse({foo: "bar"});
+
+			}
+		));
+
+		return this.createRouter();
+	}
+
+}
+
+
+s.use("/", new Router());
+
+s.startHTTP();

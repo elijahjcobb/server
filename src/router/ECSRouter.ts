@@ -47,6 +47,15 @@ export class ECSRouter {
 	public routes: ECArrayList<ECSRoute> = new ECArrayList<ECSRoute>();
 	public router: Express.Router = Express.Router();
 
+	private applySharedHeaders(res: Express.Response): Express.Response {
+
+		res.setHeader("X-Powered-By", "@elijahjcobb/server on NPM");
+		res.setHeader("Access-Control-Allow-Origin", "*");
+
+		return res;
+
+	}
+
 	/**
 	 * Notify the error handler that the package has exposed.
 	 * @param {ECErrorStack} stack An ECErrorStack instance.
@@ -63,6 +72,8 @@ export class ECSRouter {
 	 * @param {Express.Response} res A Express Response instance.
 	 */
 	private handleInternalError(error: any, res: Express.Response): void {
+
+		res = this.applySharedHeaders(res);
 
 		res.status(500).json({
 			error: "Internal server error.",
@@ -85,6 +96,7 @@ export class ECSRouter {
 	private checkErrorForExpressOrigin(error: Error, res: Express.Response): void {
 
 		const msg: string = error.message;
+		res = this.applySharedHeaders(res);
 
 		if (!msg) {
 			return this.handleInternalError(error, res);
@@ -116,6 +128,8 @@ export class ECSRouter {
 	 * @param {Express.Response} res A Express Response instance.
 	 */
 	private handleError(error: any, res: Express.Response): void {
+
+		res = this.applySharedHeaders(res);
 
 		if (error instanceof ECErrorStack) {
 
@@ -182,6 +196,7 @@ export class ECSRouter {
 		const rootHandler: (route: ECSRoute, req: Express.Request, res: Express.Response) => Promise<void> = async (route: ECSRoute, req: Express.Request, res: Express.Response): Promise<void> => {
 
 			let request: ECSRequest = new ECSRequest(req);
+			res = this.applySharedHeaders(res);
 
 			if (route.getIsRawBody()) {
 
@@ -237,8 +252,6 @@ export class ECSRouter {
 			route.getHandler()(request).then((value: ECSResponse) => {
 
 				value.getHeaders().forEach((key: string, value: string | number) => res.setHeader(key, value));
-				res.setHeader("X-Powered-By", "@elijahjcobb/server on NPM");
-				res.setHeader("Access-Control-Allow-Origin", "*");
 
 				if (value.getIsRaw()) {
 

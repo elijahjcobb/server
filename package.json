@@ -1,6 +1,6 @@
 {
   "name": "@elijahjcobb/server",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Create a HTTP/S server easily with advanced features and functionality.",
   "main": "dist/index",
   "types": "dist/index",
