@@ -238,6 +238,7 @@ export class ECSRouter {
 
 				value.getHeaders().forEach((key: string, value: string | number) => res.setHeader(key, value));
 				res.setHeader("X-Powered-By", "@elijahjcobb/server on NPM");
+				res.setHeader("Access-Control-Allow-Origin", "*");
 
 				if (value.getIsRaw()) {
 
