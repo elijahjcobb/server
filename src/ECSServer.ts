@@ -64,6 +64,25 @@ export class ECSServer extends ECPrototype {
 
 		this.expressServer = Express();
 
+		this.expressServer.use((req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+
+			res.set("Access-Control-Allow-Origin", req.get("origin"));
+			res.set("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+			res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+			res.set("Access-Control-Allow-Credentials", "true");
+
+			if (req.method === "OPTIONS") {
+
+				res.sendStatus(200);
+
+			} else {
+
+				next();
+
+			}
+
+		});
+
 		this.routers.forEach((mountingPoint: string, router: ECSRouter) => {
 
 			if (!this.expressServer) throw new Error("Express server is undefined.");
