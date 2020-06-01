@@ -22,24 +22,15 @@
  *
  */
 
-import {
-	ECSRequest,
-	ECSRequestType,
-	ECSResponse,
-	ECSRoute,
-	ECSRouter,
-	ECSServer,
-	ECSTypeValidator,
-	ECSValidator,
-} from "./index";
+import { ECSRequest, ECSRequestType, ECSResponse, ECSRoute, ECSRouter, ECSServer } from "./index";
+import * as Express from "express";
 
-import * as Typit from "typit";
-import { ECSError } from "./error/ECSError";
 
-const server: ECSServer = new ECSServer();
+const s: ECSServer = new ECSServer();
 
-const router: ECSRouter = new ECSRouter();
+class Router extends ECSRouter {
 
+<<<<<<< HEAD
 const route: ECSRoute = new ECSRoute(ECSRequestType.GET, "/foo", async (req: ECSRequest): Promise<ECSResponse> => {
 
 
@@ -50,9 +41,26 @@ const route: ECSRoute = new ECSRoute(ECSRequestType.GET, "/foo", async (req: ECS
 }, new ECSValidator(new ECSTypeValidator({
 	name: Typit.StandardType.NUMBER
 })));
+=======
+	public getRouter(): Express.Router {
 
-router.add(route);
+		this.add(new ECSRoute(
+			ECSRequestType.GET,
+			"/",
+			async (req: ECSRequest): Promise<ECSResponse> => {
 
-server.routers.set("/", router);
+				return new ECSResponse({foo: "bar"});
 
-server.startHTTP(3000);
+			}
+		));
+>>>>>>> fb9e83ce13fa3eef006f287d99c31ae458eb0c99
+
+		return this.createRouter();
+	}
+
+}
+
+
+s.use("/", new Router());
+
+s.startHTTP();
