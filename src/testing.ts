@@ -40,17 +40,15 @@ const server: ECSServer = new ECSServer();
 
 const router: ECSRouter = new ECSRouter();
 
-const route: ECSRoute = new ECSRoute(ECSRequestType.POST, "/foo/:id", async (req: ECSRequest): Promise<ECSResponse> => {
+const route: ECSRoute = new ECSRoute(ECSRequestType.GET, "/foo", async (req: ECSRequest): Promise<ECSResponse> => {
 
-	throw ECSError.init().msg("foo foo").show();
 
 	return new ECSResponse({
-		id: req.getParameters().get("id"),
-		name: req.getBody().get("name")
+		name: req.get("name")
 	});
 
 }, new ECSValidator(new ECSTypeValidator({
-	name: Typit.StandardType.STRING
+	name: Typit.StandardType.NUMBER
 })));
 
 router.add(route);
